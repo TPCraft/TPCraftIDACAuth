@@ -1,0 +1,6 @@
+name: TPCraftIDACAuth
+version: '${project.version}'
+main: net.tpcraft.minecraft.TPCraftIDACAuth
+commands:
+  auth:
+    description: "主命令"

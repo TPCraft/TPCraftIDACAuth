@@ -1,0 +1,5 @@
+webPort: 5900
+
+clientId: ""
+clientSecret: ""
+redirectUri: ""
