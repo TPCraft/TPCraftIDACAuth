@@ -1,5 +1,17 @@
+# Web服务器端口
 webPort: 5900
 
-clientId: ""
-clientSecret: ""
-redirectUri: ""
+# 前往 https://auth.tpcraft.net/oauth2/client 创建 OAuth2 客户端
+# OAuth2客户端配置
+clientId: ''
+clientSecret: ''
+redirectUri: ''
+
+# 进入/离开服务器消息
+coverInfo: true
+
+# 限制模式
+limitMode: false
+# 限制模式白名单
+allowPlayers:
+  - ''

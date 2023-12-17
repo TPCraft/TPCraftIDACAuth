@@ -11,15 +11,12 @@ import spark.Spark;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.bukkit.Bukkit.getLogger;
-
 public class HTTPServer {
     public static Boolean start() {
         Spark.port(TPCraftIDACAuth.config.getWebPort());
 
         Spark.get("/oauth2/callback", (req, res) -> {
             String error = req.queryParams("error");
-
             String code = req.queryParams("code");
             String state = req.queryParams("state");
 
@@ -31,31 +28,31 @@ public class HTTPServer {
             }
 
             if (TPCraftIDACAuth.notLoginPlayers.get(state) == null) {
+                authorizationFailed(state);
                 return TPCraftIDACAuth.template
                         .replace("{{status}}", "error")
                         .replace("{{title}}", "授权失败");
             }
 
-            Map<String, String> requestAccessTokenHeaders = new HashMap<>();
-            requestAccessTokenHeaders.put("Content-Type", "application/x-www-form-urlencoded");
-
-            Map<String, String> requestAccessTokenData = new HashMap<>();
-            requestAccessTokenData.put("client_id", TPCraftIDACAuth.config.getClientId());
-            requestAccessTokenData.put("client_secret", TPCraftIDACAuth.config.getClientSecret());
-            requestAccessTokenData.put("redirect_uri", TPCraftIDACAuth.config.getRedirectUri());
-            requestAccessTokenData.put("grant_type", "authorization_code");
-            requestAccessTokenData.put("code", code);
-
-            String responseAccessToken = HTTPRequest.sendPOST(
+            String responseAccessToken = HTTPRequest.sendPostRequest(
                     "https://api.tpcraft.net/oauth2/accessToken",
-                    requestAccessTokenHeaders,
-                    requestAccessTokenData
+                    new HashMap<>(),
+                    "client_id=" + TPCraftIDACAuth.config.getClientId() +
+                            "&client_secret=" + TPCraftIDACAuth.config.getClientSecret() +
+                            "&redirect_uri=" + TPCraftIDACAuth.config.getRedirectUri() +
+                            "&grant_type=authorization_code" +
+                            "&code=" + code,
+                    new HashMap<>(),
+                    false
             );
 
-            String accessToken = "";
+            String accessToken;
 
             if (responseAccessToken.equals("ERROR")) {
                 authorizationFailed(state);
+                return TPCraftIDACAuth.template
+                        .replace("{{status}}", "error")
+                        .replace("{{title}}", "插件内部错误，请联系管理员");
             } else {
                 Map<String, Object> response = new Gson().fromJson(responseAccessToken, Map.class);
                 if (response.get("access_token") != null) {
@@ -68,22 +65,26 @@ public class HTTPServer {
                 }
             }
 
-            Map<String, String> requestGeUserHeaders = new HashMap<>();
-            requestGeUserHeaders.put("Authorization", "Bearer " + accessToken);
-
-            String responseGetUser = HTTPRequest.sendGET(
+            String finalAccessToken = accessToken;
+            String responseUser = HTTPRequest.sendGetRequest(
                     "https://api.tpcraft.net/oauth2/user",
-                    requestGeUserHeaders
+                    new HashMap<String, String>() {
+                        {
+                            put("Authorization", "Bearer " + finalAccessToken);
+                        }
+                    },
+                    new HashMap<>()
             );
 
             Map<String, Object> user;
 
-            if (responseGetUser.equals("ERROR")) {
+            if (responseUser.equals("ERROR")) {
                 authorizationFailed(state);
-                return TPCraftIDACAuth.template;
+                return TPCraftIDACAuth.template
+                        .replace("{{status}}", "error")
+                        .replace("{{title}}", "插件内部错误，请联系管理员");
             } else {
-                Gson gson = new Gson();
-                Map<String, Object> response = gson.fromJson(responseGetUser, Map.class);
+                Map<String, Object> response = new Gson().fromJson(responseUser, Map.class);
                 if (Boolean.parseBoolean(response.get("status").toString())) {
                     user = (Map<String, Object>) response.get("data");
                 } else {
@@ -108,11 +109,7 @@ public class HTTPServer {
 
             player.sendMessage("");
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    " " + TPCraftIDACAuth.prefix + "授权"
-            ));
-            player.sendMessage("");
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    " &2授权成功"
+                    TPCraftIDACAuth.prefix + "授权成功"
             ));
             player.sendMessage("");
 
@@ -136,11 +133,12 @@ public class HTTPServer {
                 @Override
                 public void run() {
                     player.kickPlayer(ChatColor.translateAlternateColorCodes('&',
-                            TPCraftIDACAuth.prefix + "&4授权失败"
+                            TPCraftIDACAuth.prefix + "授权失败"
                     ));
                 }
             }.runTask(TPCraftIDACAuth.plugin);
         }
+
         TPCraftIDACAuth.notLoginPlayers.remove(state);
     }
 }

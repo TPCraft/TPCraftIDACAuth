@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TPCraftIDAC</title>
+    <title>TPCraftIDACAuth</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0;
+            padding: 0;
+            background-color: #E3E3E3;
             height: 100vh;
         }
 
         .container {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
+            border-top: 5px solid #0957F3;
+            background-color: #FFFFFF;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
 
@@ -41,14 +42,6 @@
         .error {
             color: #dc3545;
         }
-
-        h1 {
-            color: #333;
-        }
-
-        p {
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
@@ -57,8 +50,8 @@
         <span>TPCraft</span> <span>Id</span>entity
         <span>A</span>uthentication <span>C</span>enter
     </div>
-    <p>TPCraft 身份认证中心</p>
-    <p class="{{status}}">{{title}}</p>
+    <h2>TPCraft 身份认证中心</h2>
+    <h3 class="{{status}}">{{title}}</h3>
     <p>您可以关闭此页面</p>
 </div>
 </body>
