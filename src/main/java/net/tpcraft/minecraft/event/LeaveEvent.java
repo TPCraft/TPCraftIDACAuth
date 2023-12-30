@@ -1,5 +1,6 @@
 package net.tpcraft.minecraft.event;
 
+import net.tpcraft.minecraft.Config;
 import net.tpcraft.minecraft.TPCraftIDACAuth;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -11,6 +12,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class LeaveEvent implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void PlayerQuitEvent(PlayerQuitEvent event) {
+        Config config = TPCraftIDACAuth.config;
+
         Player player = event.getPlayer();
 
         if (TPCraftIDACAuth.notLoginPlayers.containsValue(player)) {
@@ -21,9 +24,9 @@ public class LeaveEvent implements Listener {
             TPCraftIDACAuth.isLoginPlayers.remove(player);
         }
 
-        if (TPCraftIDACAuth.config.getCoverInfo()) {
+        if (config.getLoginMessageEnable()) {
             event.setQuitMessage(ChatColor.translateAlternateColorCodes('&',
-                    "[&4-&r] &e" + player.getDisplayName()
+                    config.getLoginMessageLeave().replace("%player%", player.getDisplayName())
             ));
         }
     }

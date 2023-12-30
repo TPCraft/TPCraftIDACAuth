@@ -14,61 +14,67 @@ public class MainEvent implements Listener {
     }
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void InventoryClickEvent(InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player) {
             event.setCancelled(checkIsLogin(((Player) event.getWhoClicked()).getPlayer()));
         }
     }
 
     @EventHandler
-    public void onPlayerPortal(PlayerPortalEvent event) {
+    public void PlayerPortalEvent(PlayerPortalEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+    public void PlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+    public void PlayerPickupItemEvent(PlayerPickupItemEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerDropItem(PlayerDropItemEvent event) {
+    public void PlayerDropItemEvent(PlayerDropItemEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
+    public void PlayerInteractEvent(PlayerInteractEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+    public void PlayerItemHeldEvent(PlayerItemHeldEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
+    public void PlayerMoveEvent(PlayerMoveEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void AsyncPlayerChatEvent(AsyncPlayerChatEvent event) {
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageEvent event) {
+    public void EntityDamageEvent(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
             event.setCancelled(checkIsLogin(((Player) event.getEntity()).getPlayer()));
         }
     }
 
     @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
+    public void PlayerTeleportEvent(PlayerTeleportEvent event) {
+        PlayerTeleportEvent.TeleportCause teleportCause = event.getCause();
+
+        if (teleportCause == PlayerTeleportEvent.TeleportCause.PLUGIN || teleportCause == PlayerTeleportEvent.TeleportCause.COMMAND) {
+            return;
+        }
+
         event.setCancelled(checkIsLogin(event.getPlayer()));
     }
 }

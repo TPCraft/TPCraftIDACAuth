@@ -1,210 +1,21 @@
 package net.tpcraft.minecraft.command;
 
+import net.tpcraft.minecraft.Config;
 import net.tpcraft.minecraft.TPCraftIDACAuth;
-import net.tpcraft.minecraft.http.HTTPServer;
+import net.tpcraft.minecraft.server.http.WebServer;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
-public class MainCommand implements CommandExecutor, TabCompleter {
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 0) {
-            sendHelp(sender);
-            return false;
-        }
-
-        switch (args[0]) {
-            case "coverInfo": {
-                if (sender instanceof Player && !sender.hasPermission("auth.admin")) {
-                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                            TPCraftIDACAuth.prefix + "你没有执行此命令的权限"
-                    ));
-                    return false;
-                }
-
-                if (!checkArgs(sender, args, 2)) {
-                    return false;
-                }
-
-                switch (args[1]) {
-                    case "on": {
-                        TPCraftIDACAuth.config.setCoverInfo(true);
-                        TPCraftIDACAuth.plugin.getConfig().set("coverInfo", true);
-                        TPCraftIDACAuth.plugin.saveConfig();
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "进入/离开服务器消息：&2已启用"
-                        ));
-                        return false;
-                    }
-                    case "off": {
-                        TPCraftIDACAuth.config.setCoverInfo(false);
-                        TPCraftIDACAuth.plugin.getConfig().set("coverInfo", false);
-                        TPCraftIDACAuth.plugin.saveConfig();
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "进入/离开服务器消息：&4已禁用"
-                        ));
-                        return false;
-                    }
-                    default: {
-                        sendHelp(sender);
-                        return false;
-                    }
-                }
-            }
-            case "limit": {
-                if (sender instanceof Player && !sender.hasPermission("auth.admin")) {
-                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                            TPCraftIDACAuth.prefix + "你没有执行此命令的权限"
-                    ));
-                    return false;
-                }
-
-                if (!checkArgs(sender, args, 2)) {
-                    return false;
-                }
-
-                switch (args[1]) {
-                    case "on": {
-                        TPCraftIDACAuth.config.setLimitMode(true);
-                        TPCraftIDACAuth.plugin.getConfig().set("limitMode", true);
-                        TPCraftIDACAuth.plugin.saveConfig();
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "限制模式：&2已启用"
-                        ));
-                        return false;
-                    }
-                    case "off": {
-                        TPCraftIDACAuth.config.setLimitMode(false);
-                        TPCraftIDACAuth.plugin.getConfig().set("limitMode", false);
-                        TPCraftIDACAuth.plugin.saveConfig();
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "限制模式：&4已禁用"
-                        ));
-                        return false;
-                    }
-                    case "add": {
-                        if (!checkArgs(sender, args, 3)) {
-                            return false;
-                        }
-                        TPCraftIDACAuth.config.getAllowPlayers().add(args[2]);
-                        TPCraftIDACAuth.plugin.getConfig().set("allowPlayers", TPCraftIDACAuth.config.getAllowPlayers());
-                        TPCraftIDACAuth.plugin.saveConfig();
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "限制模式白名单：已添加 &e" + args[2]
-                        ));
-                        return false;
-                    }
-                    case "remove": {
-                        if (!checkArgs(sender, args, 3)) {
-                            return false;
-                        }
-                        TPCraftIDACAuth.config.getAllowPlayers().removeIf(player -> player.equals(args[2]));
-                        TPCraftIDACAuth.plugin.getConfig().set("allowPlayers", TPCraftIDACAuth.config.getAllowPlayers());
-                        TPCraftIDACAuth.plugin.saveConfig();
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "限制模式白名单：已移除 &e" + args[2]
-                        ));
-                        return false;
-                    }
-                    case "list": {
-                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                TPCraftIDACAuth.prefix + "限制模式白名单：&e" + String.join(" ", TPCraftIDACAuth.config.getAllowPlayers())
-                        ));
-                        return false;
-                    }
-                    default: {
-                        sendHelp(sender);
-                        return false;
-                    }
-                }
-            }
-            case "reload": {
-                if (sender instanceof Player && !sender.hasPermission("auth.admin")) {
-                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                            TPCraftIDACAuth.prefix + "你没有执行此命令的权限"
-                    ));
-                    return false;
-                }
-
-                for (Map.Entry entry : TPCraftIDACAuth.notLoginPlayers.entrySet()) {
-                    Player player = (Player) entry.getValue();
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            player.kickPlayer(ChatColor.translateAlternateColorCodes('&',
-                                    TPCraftIDACAuth.prefix + "插件重载，请稍后重试"
-                            ));
-                        }
-                    }.runTask(TPCraftIDACAuth.plugin);
-                }
-                TPCraftIDACAuth.notLoginPlayers = new HashMap<>();
-
-                TPCraftIDACAuth.loaded = false;
-                TPCraftIDACAuth.plugin.reloadConfig();
-                if (TPCraftIDACAuth.loadConfig() && TPCraftIDACAuth.loadTemplate()) {
-                    if (HTTPServer.stop()) {
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                if (HTTPServer.start()) {
-                                    TPCraftIDACAuth.loaded = true;
-                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                            TPCraftIDACAuth.prefix + "插件重载完成"
-                                    ));
-                                }
-                            }
-                        }.runTaskLater(TPCraftIDACAuth.plugin, 60);
-                    }
-                }
-
-                return false;
-            }
-            default: {
-                sendHelp(sender);
-                return false;
-            }
-        }
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-
-        if (args.length == 1) {
-            completions.add("coverInfo");
-            completions.add("limit");
-            completions.add("reload");
-        }
-
-        switch (args[0]) {
-            case "coverInfo": {
-                completions.add("on");
-                completions.add("off");
-                break;
-            }
-            case "limit": {
-                completions.add("on");
-                completions.add("off");
-                completions.add("add");
-                completions.add("remove");
-                completions.add("list");
-                break;
-            }
-        }
-
-        return completions;
-    }
-
+public class MainCommand implements CommandExecutor {
     private Boolean checkArgs(CommandSender sender, String[] args, Integer argsLength) {
         if (args.length < argsLength || args[argsLength - 1].isEmpty()) {
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
@@ -215,30 +26,298 @@ public class MainCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private Boolean checkSenderIsConsole(CommandSender sender) {
+        return !(sender instanceof Player);
+    }
+
+    private Boolean checkSenderIsPlayer(CommandSender sender) {
+        return sender instanceof Player;
+    }
+
     private void sendHelp(CommandSender sender) {
+        Config config = TPCraftIDACAuth.config;
+
         sender.sendMessage("");
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                TPCraftIDACAuth.prefix
+                TPCraftIDACAuth.prefix + "帮助"
         ));
         sender.sendMessage("");
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "进入/离开服务器消息：" + (TPCraftIDACAuth.config.getCoverInfo() ? "&a已启用" : "&c已禁用")
+                "登入消息：" + (config.getLoginMessageEnable() ? "&a已启用" : "&c已禁用")
         ));
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "限制模式：" + (TPCraftIDACAuth.config.getLimitMode() ? "&a已启用" : "&c已禁用")
+                "自动登入：" + (config.getAutoLoginEnable() ? "&a已启用" : "&c已禁用")
+        ));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "固定登入坐标：" + (config.getLoginPositionEnable() ? "&a已启用" : "&c已禁用")
+        ));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "白名单：" + (config.getWhiteListEnable() ? "&a已启用" : "&c已禁用")
         ));
         sender.sendMessage("");
         sender.sendMessage("/auth - 主命令");
-        sender.sendMessage("* /auth coverInfo on - 启用进入/离开服务器消息");
-        sender.sendMessage("* /auth coverInfo off - 禁用进入/离开服务器消息");
-        sender.sendMessage("* /auth limit on - 启用限制模式");
-        sender.sendMessage("* /auth limit off - 禁用限制模式");
-        sender.sendMessage("* /auth limit add [名称] - 添加限制模式白名单");
-        sender.sendMessage("* /auth limit remove [名称] - 移除限制模式白名单");
-        sender.sendMessage("* /auth limit list - 限制模式白名单列表");
+        sender.sendMessage("* /auth loginMessage on - 启用登入消息");
+        sender.sendMessage("* /auth loginMessage off - 禁用登入消息");
+        sender.sendMessage("* /auth autoLogin on - 启用自动登入");
+        sender.sendMessage("* /auth autoLogin off - 禁用自动登入");
+        sender.sendMessage("* /auth autoLogin set <超时时间(秒)> - 设置自动登入超时时间");
+        sender.sendMessage("* /auth loginPosition on - 启用固定登入坐标");
+        sender.sendMessage("* /auth loginPosition off - 禁用固定登入坐标");
+        sender.sendMessage("* /auth loginPosition set - 设置固定登入坐标");
+        sender.sendMessage("* /auth whiteList on - 启用白名单");
+        sender.sendMessage("* /auth whiteList off - 禁用白名单");
+        sender.sendMessage("* /auth whiteList add <玩家名称> - 添加白名单");
+        sender.sendMessage("* /auth whiteList remove <玩家名称> - 移除白名单");
+        sender.sendMessage("* /auth whiteList list - 白名单列表");
         sender.sendMessage("* /auth reload - 重载插件");
         sender.sendMessage("");
         sender.sendMessage("注意：带 * 字符需要管理员权限");
         sender.sendMessage("");
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) {
+            sendHelp(sender);
+            return false;
+        } else {
+            if (sender instanceof Player && !sender.hasPermission("auth.admin")) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        TPCraftIDACAuth.prefix + "你没有执行此命令的权限"
+                ));
+                return false;
+            }
+        }
+
+        Plugin plugin = TPCraftIDACAuth.plugin;
+        Config config = TPCraftIDACAuth.config;
+
+        switch (args[0]) {
+            case "loginMessage": {
+                if (!checkArgs(sender, args, 2)) {
+                    return false;
+                }
+
+                switch (args[1]) {
+                    case "on": {
+                        config.setLoginMessageEnable(true);
+                        plugin.getConfig().set("loginMessage.enable", true);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "登入消息：&2已启用"
+                        ));
+                        return false;
+                    }
+                    case "off": {
+                        config.setLoginMessageEnable(false);
+                        plugin.getConfig().set("loginMessage.enable", false);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "登入消息：&4已禁用"
+                        ));
+                        return false;
+                    }
+                }
+            }
+            case "autoLogin": {
+                if (!checkArgs(sender, args, 2)) {
+                    return false;
+                }
+
+                switch (args[1]) {
+                    case "on": {
+                        config.setAutoLoginEnable(true);
+                        plugin.getConfig().set("autoLogin.enable", true);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "自动登入：&2已启用"
+                        ));
+                        return false;
+                    }
+                    case "off": {
+                        config.setAutoLoginEnable(false);
+                        plugin.getConfig().set("autoLogin.enable", false);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "自动登入：&4已禁用"
+                        ));
+                        return false;
+                    }
+                    case "set": {
+                        if (!checkArgs(sender, args, 3)) {
+                            return false;
+                        }
+
+                        if (!Pattern.matches("^[0-9]+$", args[2])) {
+                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                    TPCraftIDACAuth.prefix + "参数错误"
+                            ));
+                            return false;
+                        }
+
+                        config.setAutoLoginExpires(Integer.parseInt(args[2]));
+                        plugin.getConfig().set("autoLogin.expires", Integer.parseInt(args[2]));
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "自动登入：超时时间设置为 " + args[2] + " 秒"
+                        ));
+                        return false;
+                    }
+                }
+            }
+            case "loginPosition": {
+                if (!checkArgs(sender, args, 2)) {
+                    return false;
+                }
+
+                switch (args[1]) {
+                    case "on": {
+                        config.setLoginPositionEnable(true);
+                        plugin.getConfig().set("loginPosition.enable", true);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "固定登入坐标：&2已启用"
+                        ));
+                        return false;
+                    }
+                    case "off": {
+                        config.setLoginPositionEnable(false);
+                        plugin.getConfig().set("loginPosition.enable", false);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "固定登入坐标：&4已禁用"
+                        ));
+                        return false;
+                    }
+                    case "set": {
+                        if (!checkSenderIsPlayer(sender)) {
+                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                    TPCraftIDACAuth.prefix + "此命令控制台无法使用"
+                            ));
+                            return false;
+                        }
+
+                        Player player = (Player) sender;
+
+                        double x = player.getLocation().getX();
+                        double y = player.getLocation().getY();
+                        double z = player.getLocation().getZ();
+
+                        x = Math.round(x * 10.0) / 10.0;
+                        y = Math.round(y * 10.0) / 10.0;
+                        z = Math.round(z * 10.0) / 10.0;
+
+                        config.setLoginPositionX(x);
+                        config.setLoginPositionY(y);
+                        config.setLoginPositionZ(z);
+                        plugin.getConfig().set("loginPosition.x", x);
+                        plugin.getConfig().set("loginPosition.y", y);
+                        plugin.getConfig().set("loginPosition.z", z);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "固定登入坐标：已设置为 X:" + x + " Y:" + y + " Z:" + z
+                        ));
+                        return false;
+                    }
+                }
+            }
+            case "whiteList": {
+                if (!checkArgs(sender, args, 2)) {
+                    return false;
+                }
+
+                switch (args[1]) {
+                    case "on": {
+                        config.setWhiteListEnable(true);
+                        plugin.getConfig().set("whiteList.enable", true);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "白名单：&2已启用"
+                        ));
+                        return false;
+                    }
+                    case "off": {
+                        config.setWhiteListEnable(false);
+                        plugin.getConfig().set("whiteList.enable", false);
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "白名单：&4已禁用"
+                        ));
+                        return false;
+                    }
+                    case "add": {
+                        if (!checkArgs(sender, args, 3)) {
+                            return false;
+                        }
+                        config.getWhiteListAllowPlayers().add(args[2]);
+                        plugin.getConfig().set("whiteList.allowPlayers", config.getWhiteListAllowPlayers());
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "白名单：已添加 &e" + args[2]
+                        ));
+                        return false;
+                    }
+                    case "remove": {
+                        if (!checkArgs(sender, args, 3)) {
+                            return false;
+                        }
+                        config.getWhiteListAllowPlayers().removeIf(player -> player.equals(args[2]));
+                        plugin.getConfig().set("whiteList.allowPlayers", config.getWhiteListAllowPlayers());
+                        plugin.saveConfig();
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "白名单：已移除 &e" + args[2]
+                        ));
+                        return false;
+                    }
+                    case "list": {
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "白名单列表：&e" + String.join(" ", config.getWhiteListAllowPlayers())
+                        ));
+                        return false;
+                    }
+                }
+            }
+            case "reload": {
+                for (Map.Entry entry : TPCraftIDACAuth.notLoginPlayers.entrySet()) {
+                    Player player = (Player) entry.getValue();
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            player.kickPlayer(ChatColor.translateAlternateColorCodes('&',
+                                    TPCraftIDACAuth.prefix + "插件重载，请稍后再重试"
+                            ));
+                        }
+                    }.runTask(plugin);
+                }
+                TPCraftIDACAuth.notLoginPlayers = new HashMap<>();
+
+                TPCraftIDACAuth.loaded = false;
+
+                plugin.reloadConfig();
+
+                TPCraftIDACAuth.loadConfig();
+                TPCraftIDACAuth.loadData();
+                TPCraftIDACAuth.loadTemplate();
+
+                WebServer.stop();
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        WebServer.start();
+
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                TPCraftIDACAuth.prefix + "插件重载完成"
+                        ));
+
+                        TPCraftIDACAuth.loaded = true;
+                    }
+                }.runTaskLater(plugin, 60);
+                return false;
+            }
+            default: {
+                sendHelp(sender);
+                return false;
+            }
+        }
     }
 }

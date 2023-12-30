@@ -3,80 +3,142 @@ package net.tpcraft.minecraft;
 import java.util.List;
 
 public class Config {
-    private int webPort;
-    private String clientId;
-    private String clientSecret;
-    private String redirectUri;
-    private Boolean coverInfo;
-    private Boolean limitMode;
-    private List<String> allowPlayers;
+    private Integer webPort;
+    private String oauth2ClientId;
+    private String oauth2ClientSecret;
+    private String oauth2RedirectUri;
+    private Boolean loginMessageEnable;
+    private String loginMessageJoin;
+    private String loginMessageLeave;
+    private Boolean autoLoginEnable;
+    private Integer autoLoginExpires;
+    private Boolean loginPositionEnable;
+    private Double loginPositionX;
+    private Double loginPositionY;
+    private Double loginPositionZ;
+    private Boolean whiteListEnable;
+    private List<String> whiteListAllowPlayers;
 
     public Config() {
     }
 
-    public Config(int webPort, String clientId, String clientSecret, String redirectUri, Boolean coverInfo, Boolean limitMode, List<String> allowPlayers) {
-        this.webPort = webPort;
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.redirectUri = redirectUri;
-        this.coverInfo = coverInfo;
-        this.limitMode = limitMode;
-        this.allowPlayers = allowPlayers;
-    }
-
-    public int getWebPort() {
+    public Integer getWebPort() {
         return webPort;
     }
 
-    public void setWebPort(int webPort) {
+    public void setWebPort(Integer webPort) {
         this.webPort = webPort;
     }
 
-    public String getClientId() {
-        return clientId;
+    public String getOauth2ClientId() {
+        return oauth2ClientId;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
+    public void setOauth2ClientId(String oauth2ClientId) {
+        this.oauth2ClientId = oauth2ClientId;
     }
 
-    public String getClientSecret() {
-        return clientSecret;
+    public String getOauth2ClientSecret() {
+        return oauth2ClientSecret;
     }
 
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
+    public void setOauth2ClientSecret(String oauth2ClientSecret) {
+        this.oauth2ClientSecret = oauth2ClientSecret;
     }
 
-    public String getRedirectUri() {
-        return redirectUri;
+    public String getOauth2RedirectUri() {
+        return oauth2RedirectUri;
     }
 
-    public void setRedirectUri(String redirectUri) {
-        this.redirectUri = redirectUri;
+    public void setOauth2RedirectUri(String oauth2RedirectUri) {
+        this.oauth2RedirectUri = oauth2RedirectUri;
     }
 
-    public Boolean getCoverInfo() {
-        return coverInfo;
+    public Boolean getLoginMessageEnable() {
+        return loginMessageEnable;
     }
 
-    public void setCoverInfo(Boolean coverInfo) {
-        this.coverInfo = coverInfo;
+    public void setLoginMessageEnable(Boolean loginMessageEnable) {
+        this.loginMessageEnable = loginMessageEnable;
     }
 
-    public Boolean getLimitMode() {
-        return limitMode;
+    public String getLoginMessageJoin() {
+        return loginMessageJoin;
     }
 
-    public void setLimitMode(Boolean limitMode) {
-        this.limitMode = limitMode;
+    public void setLoginMessageJoin(String loginMessageJoin) {
+        this.loginMessageJoin = loginMessageJoin;
     }
 
-    public List<String> getAllowPlayers() {
-        return allowPlayers;
+    public String getLoginMessageLeave() {
+        return loginMessageLeave;
     }
 
-    public void setAllowPlayers(List<String> allowPlayers) {
-        this.allowPlayers = allowPlayers;
+    public void setLoginMessageLeave(String loginMessageLeave) {
+        this.loginMessageLeave = loginMessageLeave;
+    }
+
+    public Boolean getAutoLoginEnable() {
+        return autoLoginEnable;
+    }
+
+    public void setAutoLoginEnable(Boolean autoLoginEnable) {
+        this.autoLoginEnable = autoLoginEnable;
+    }
+
+    public Integer getAutoLoginExpires() {
+        return autoLoginExpires;
+    }
+
+    public void setAutoLoginExpires(Integer autoLoginExpires) {
+        this.autoLoginExpires = autoLoginExpires;
+    }
+
+    public Boolean getLoginPositionEnable() {
+        return loginPositionEnable;
+    }
+
+    public void setLoginPositionEnable(Boolean loginPositionEnable) {
+        this.loginPositionEnable = loginPositionEnable;
+    }
+
+    public Double getLoginPositionX() {
+        return loginPositionX;
+    }
+
+    public void setLoginPositionX(Double loginPositionX) {
+        this.loginPositionX = loginPositionX;
+    }
+
+    public Double getLoginPositionY() {
+        return loginPositionY;
+    }
+
+    public void setLoginPositionY(Double loginPositionY) {
+        this.loginPositionY = loginPositionY;
+    }
+
+    public Double getLoginPositionZ() {
+        return loginPositionZ;
+    }
+
+    public void setLoginPositionZ(Double loginPositionZ) {
+        this.loginPositionZ = loginPositionZ;
+    }
+
+    public Boolean getWhiteListEnable() {
+        return whiteListEnable;
+    }
+
+    public void setWhiteListEnable(Boolean whiteListEnable) {
+        this.whiteListEnable = whiteListEnable;
+    }
+
+    public List<String> getWhiteListAllowPlayers() {
+        return whiteListAllowPlayers;
+    }
+
+    public void setWhiteListAllowPlayers(List<String> whiteListAllowPlayers) {
+        this.whiteListAllowPlayers = whiteListAllowPlayers;
     }
 }

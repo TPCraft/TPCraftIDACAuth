@@ -39,7 +39,7 @@
             color: #28a745;
         }
 
-        .error {
+        .fail {
             color: #dc3545;
         }
     </style>
@@ -52,6 +52,11 @@
     </div>
     <h2>TPCraft 身份认证中心</h2>
     <h3 class="{{status}}">{{title}}</h3>
+    <div style="display: {{errorDisplay}};">
+        <div>错误类型：{{error}}</div>
+        <div>错误原因：{{errorDescription}}</div>
+        <div style="margin-top: 5px;">若出现此错误，您可以将此错误反馈给服务器管理员</div>
+    </div>
     <p>您可以关闭此页面</p>
 </div>
 </body>

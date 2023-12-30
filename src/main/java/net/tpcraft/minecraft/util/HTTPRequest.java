@@ -2,7 +2,6 @@ package net.tpcraft.minecraft.util;
 
 import okhttp3.*;
 
-import java.io.IOException;
 import java.util.Map;
 
 public class HTTPRequest {
