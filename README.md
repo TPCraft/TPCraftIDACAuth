@@ -2,6 +2,10 @@
 
 TPCraft身份认证中心授权，适用于Minecraft Java服务器，玩家通过TPCraft身份认证中心登入到服务器
 
+## 相关文档
+
+[https://tpcraft-1.gitbook.io/oauth2](https://tpcraft-1.gitbook.io/oauth2)
+
 ## 版本兼容
 
 全版本兼容
